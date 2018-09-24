@@ -1,0 +1,12 @@
+{
+    "name": "scaleplan/kafka",
+    "description": "Kafka client for Scaleplan framework",
+    "autoload": {
+        "psr-4": {
+            "Scaleplan\\Kafka\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.0"
+    }
+}
