@@ -1,0 +1,7 @@
+brokers:
+  - 'localhost:2181'
+topic: events
+consumers:
+  - 'localhost:80'
+  - 'localhost:8080'
+  - 'localhost:8090'
