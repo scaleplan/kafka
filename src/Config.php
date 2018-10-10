@@ -1,8 +1,9 @@
 <?php
 
-namespace Scaleplan\Event\KafkaSupport;
+namespace Scaleplan\Kafka;
 
-use avtomon\InitTrait;
+use Scaleplan\InitTrait\InitTrait;
+use Scaleplan\Kafka\Exceptions\ConfigBrokerProtoMismatch;
 
 /**
  * Class Config
@@ -31,7 +32,7 @@ class Config
     protected $timeout;
 
     /**
-     * @var \Scaleplan\Event\KafkaSupport\Node[]
+     * @var Node[]
      */
     protected $consumers;
 
@@ -56,10 +57,8 @@ class Config
      * @param string $host
      * @param int $port
      * @param string $proto
-     *
      * @return string
-     *
-     * @throws \Scaleplan\Event\KafkaSupport\Exceptions\KafkaConfigBrokerProtoMismatch
+     * @throws ConfigBrokerProtoMismatch
      */
     protected static function structBroker(string $host, int $port = 0, string $proto = '') : string
     {
@@ -69,7 +68,7 @@ class Config
         }
 
         if ($proto && !\in_array($proto, static::AVAILABLE_PROTO, true)) {
-            throw new KafkaConfigBrokerProtoMismatch();
+            throw new ConfigBrokerProtoMismatch();
         }
 
         if ($proto) {
@@ -84,7 +83,7 @@ class Config
      * @param int $port
      * @param string $proto
      *
-     * @throws \Scaleplan\Event\KafkaSupport\Exceptions\KafkaConfigBrokerProtoMismatch
+     * @throws ConfigBrokerProtoMismatch
      */
     public function addBroker(string $host, int $port = 0, string $proto = '') : void
     {
@@ -96,7 +95,7 @@ class Config
      * @param int $port
      * @param string $proto
      *
-     * @throws \Scaleplan\Event\KafkaSupport\Exceptions\KafkaConfigBrokerProtoMismatch
+     * @throws ConfigBrokerProtoMismatch
      */
     public function removeBroker(string $host, int $port = 0, string $proto = '') : void
     {
@@ -116,7 +115,7 @@ class Config
     }
 
     /**
-     * @return \Scaleplan\Event\KafkaSupport\Node[]
+     * @return Node[]
      */
     public function getConsumers() : array
     {

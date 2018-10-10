@@ -7,7 +7,7 @@ namespace Scaleplan\Kafka\Exceptions;
  *
  * @package Scaleplan\Kafka\Exceptions
  */
-class ConsumerNotFoundException extends AbstractException
+class ConsumerNotFoundException extends KafkaException
 {
     public const MESSAGE = 'Consumer not found.';
 }

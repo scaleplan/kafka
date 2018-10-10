@@ -1,6 +1,6 @@
 <?php
 
-namespace Scaleplan\Event\KafkaSupport;
+namespace Scaleplan\Kafka;
 
 use RdKafka\Message;
 
@@ -12,7 +12,7 @@ use RdKafka\Message;
 class Payload
 {
     /**
-     * @var \Scaleplan\Event\KafkaSupport\Node
+     * @var Node
      */
     protected $from;
 

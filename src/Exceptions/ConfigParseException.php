@@ -7,7 +7,7 @@ namespace Scaleplan\Kafka\Exceptions;
  *
  * @package Scaleplan\Kafka\Exceptions
  */
-class ConfigParseException extends AbstractException
+class ConfigParseException extends KafkaException
 {
     public const MESSAGE = 'Kafka config parse error.';
 }

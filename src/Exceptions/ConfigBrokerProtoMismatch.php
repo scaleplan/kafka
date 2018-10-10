@@ -7,7 +7,7 @@ namespace Scaleplan\Kafka\Exceptions;
  *
  * @package Scaleplan\Kafka\Exceptions
  */
-class ConfigBrokerProtoMismatch extends AbstractException
+class ConfigBrokerProtoMismatch extends KafkaException
 {
     public const MESSAGE = 'Kafka config broker proto mismatch.';
 }

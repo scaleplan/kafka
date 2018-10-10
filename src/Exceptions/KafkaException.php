@@ -3,16 +3,16 @@
 namespace Scaleplan\Kafka\Exceptions;
 
 /**
- * Class AbstractException
+ * Class KafkaException
  *
  * @package Scaleplan\Kafka\Exceptions
  */
-class AbstractException extends \Exception
+class KafkaException extends \Exception
 {
     public const MESSAGE = 'Kafka error.';
 
     /**
-     * AbstractException constructor.
+     * KafkaException constructor.
      *
      * @param int $code
      * @param \Throwable|null $previous

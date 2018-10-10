@@ -1,6 +1,6 @@
 <?php
 
-namespace Scaleplan\Event\KafkaSupport;
+namespace Scaleplan\Kafka;
 
 /**
  * Class Node

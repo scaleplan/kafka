@@ -5,8 +5,11 @@ namespace Scaleplan\Event\KafkaSupport;
 use RdKafka\{
     Consumer, ConsumerTopic, ProducerTopic, Topic, Producer
 };
-use Scaleplan\Event\KafkaSupport\Exceptions\ConsumerNotFoundException;
-use Scaleplan\Event\KafkaSupport\Exceptions\KafkaConfigParseException;
+use Scaleplan\Kafka\Config;
+use Scaleplan\Kafka\Exceptions\ConfigParseException;
+use Scaleplan\Kafka\Exceptions\ConsumerNotFoundException;
+use Scaleplan\Kafka\Node;
+use Scaleplan\Kafka\Payload;
 use Symfony\Component\Yaml\{
     Yaml, Exception\ParseException
 };
@@ -26,7 +29,7 @@ class Kafka
     protected $name;
 
     /**
-     * @var \Scaleplan\Event\KafkaSupport\Config
+     * @var Config
      */
     protected $config;
 
@@ -46,7 +49,7 @@ class Kafka
     protected $isConsumeStart = false;
 
     /**
-     * @var \Scaleplan\Event\KafkaSupport\Node
+     * @var Node
      */
     protected $currentNode;
 
@@ -62,7 +65,7 @@ class Kafka
      * @param string $confPath
      *
      * @throws \ReflectionException
-     * @throws \Scaleplan\Event\KafkaSupport\Exceptions\KafkaConfigParseException
+     * @throws ConfigParseException
      */
     public function __construct(string $name, string $confPath = '../Config/kafka.yml')
     {
@@ -70,7 +73,7 @@ class Kafka
         try {
             $settings = Yaml::parseFile($confPath);
         } catch (ParseException $e) {
-            throw new KafkaConfigParseException($e->getMessage());
+            throw new ConfigParseException($e->getMessage());
         }
 
         $this->config = new Config($settings);
@@ -111,10 +114,10 @@ class Kafka
     }
 
     /**
-     * @param \Scaleplan\Event\KafkaSupport\Node $consumer
-     * @param \Scaleplan\Event\KafkaSupport\Payload $payload
+     * @param Node $consumer
+     * @param Payload $payload
      *
-     * @throws \Scaleplan\Event\KafkaSupport\Exceptions\ConsumerNotFoundException
+     * @throws ConsumerNotFoundException
      */
     public function produceTo(Node $consumer, Payload $payload) : void
     {
@@ -126,7 +129,7 @@ class Kafka
     }
 
     /**
-     * @return \Scaleplan\Event\KafkaSupport\Payload
+     * @return Payload
      */
     public function getMessage() : Payload
     {
