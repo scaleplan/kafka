@@ -1,18 +1,14 @@
 <?php
 
-namespace Scaleplan\Event\KafkaSupport;
+namespace Scaleplan\Kafka;
 
-use RdKafka\{
-    Consumer, ConsumerTopic, ProducerTopic, Topic, Producer
-};
-use Scaleplan\Kafka\Config;
-use Scaleplan\Kafka\Exceptions\ConfigParseException;
-use Scaleplan\Kafka\Exceptions\ConsumerNotFoundException;
-use Scaleplan\Kafka\Node;
-use Scaleplan\Kafka\Payload;
-use Symfony\Component\Yaml\{
-    Yaml, Exception\ParseException
-};
+use RdKafka\Conf;
+use RdKafka\KafkaConsumer;
+use RdKafka\Producer;
+use RdKafka\ProducerTopic;
+use RdKafka\TopicConf;
+use Scaleplan\Kafka\Exceptions\ConsumeException;
+use Scaleplan\Kafka\Exceptions\ConsumeTimedOutException;
 
 /**
  * Class Kafka
@@ -22,16 +18,32 @@ use Symfony\Component\Yaml\{
 class Kafka
 {
     public const LOG_LEVEL = LOG_WARNING;
+    public const TIMEOUT = 1e4;
+
+    /**
+     * @var int
+     */
+    protected $timeout;
 
     /**
      * @var string
      */
-    protected $name;
+    protected $brokers;
 
     /**
-     * @var Config
+     * @var array
      */
-    protected $config;
+    protected $consumerTopics;
+
+    /**
+     * @var Producer
+     */
+    protected $producer;
+
+    /**
+     * @var KafkaConsumer
+     */
+    protected $consumer;
 
     /**
      * @var \RdKafka\ProducerTopic
@@ -44,109 +56,130 @@ class Kafka
     protected $consumerTopic;
 
     /**
-     * @var bool
+     * @var array|Kafka[]
      */
-    protected $isConsumeStart = false;
+    protected static $instances;
 
     /**
-     * @var Node
+     * @param array|null $consumerTopics
+     *
+     * @return Kafka
      */
-    protected $currentNode;
+    public static function getInstance(array $consumerTopics = null) : Kafka
+    {
+        $key = serialize($consumerTopics);
+        if (!array_key_exists($key, static::$instances)) {
+            static::$instances[$key] = static($consumerTopics);
+        }
 
-    /**
-     * @var int
-     */
-    protected $messageCount = 0;
+        return static::$instances[$key];
+    }
 
     /**
      * Kafka constructor.
      *
-     * @param string $name
-     * @param string $confPath
-     *
-     * @throws \ReflectionException
-     * @throws ConfigParseException
+     * @param array|null $consumerTopics
      */
-    public function __construct(string $name, string $confPath = '../Config/kafka.yml')
+    protected function __construct(array $consumerTopics = null)
     {
-        $this->name = $name;
-        try {
-            $settings = Yaml::parseFile($confPath);
-        } catch (ParseException $e) {
-            throw new ConfigParseException($e->getMessage());
-        }
-
-        $this->config = new Config($settings);
+        $this->consumerTopics = $consumerTopics ?? array_map(function(string $item) {
+                return trim($item);
+            }, explode(',', getenv('KAFKA_CONSUMER_TOPICS')));
+        $this->brokers = getenv('KAFKA_BROKERS');
+        $this->timeout = getenv('KAFKA_TIMEOUT') ?? static::TIMEOUT;
     }
 
     /**
-     * @return \RdKafka\ProducerTopic
+     * @param string $topicName
+     *
+     * @return ProducerTopic
      */
-    protected function getProducerTopic() : ProducerTopic
+    protected function getProducerTopic(string $topicName) : ProducerTopic
     {
         if ($this->producerTopic) {
-            $brokerString = implode(',', $this->config->getBrokers());
-            $producer = new Producer();
-            $producer->setLogLevel(static::LOG_LEVEL);
-            $producer->addBrokers($brokerString);
+            $this->producer = new Producer();
+            $this->producer->setLogLevel(static::LOG_LEVEL);
+            $this->producer->addBrokers($this->brokers);
 
-            $this->producerTopic = $producer->newTopic($this->name);
+            $this->producerTopic = $this->producer->newTopic($topicName);
         }
 
         return $this->producerTopic;
     }
 
     /**
-     * @return \RdKafka\ConsumerTopic
+     * @param string $topicName
+     * @param \Scaleplan\Kafka\Payload $payload
      */
-    protected function getConsumerTopic() : ConsumerTopic
+    public function produce(string $topicName, Payload $payload) : void
     {
-        if ($this->consumerTopic) {
-            $brokerString = implode(',', $this->config->getBrokers());
-            $consumer = new Consumer();
-            $consumer->setLogLevel(LOG_WARNING);
-            $consumer->addBrokers($brokerString);
-
-            $this->consumerTopic = $consumer->newTopic($this->name);
-        }
-
-        return $this->consumerTopic;
+        $this->getProducerTopic($topicName)->produce(RD_KAFKA_PARTITION_UA, 0, (string) $payload);
+        $this->producer->poll(0);
     }
 
     /**
-     * @param Node $consumer
-     * @param Payload $payload
+     * @return KafkaConsumer
      *
-     * @throws ConsumerNotFoundException
+     * @throws \RdKafka\Exception
      */
-    public function produceTo(Node $consumer, Payload $payload) : void
+    protected function getConsumer() : KafkaConsumer
     {
-        if (!\in_array($consumer, $this->config->getConsumers(), true)) {
-            throw new ConsumerNotFoundException();
+        if (!$this->consumer) {
+            $conf = new Conf();
+            $conf->set('group.id', 'myConsumerGroup');
+            $conf->set('metadata.broker.list', $this->brokers);
+
+            $topicConf = new TopicConf();
+            $topicConf->set('auto.offset.reset', 'smallest');
+            $conf->setDefaultTopicConf($topicConf);
+            $this->consumer = new KafkaConsumer($conf);
+            if ($this->consumerTopics !== null) {
+                $this->consumer->subscribe(['test']);
+            }
         }
 
-        $this->getProducerTopic()->produce($consumer->getId(), 0, (string) $payload);
+        return $this->consumer;
     }
 
     /**
-     * @return Payload
+     * @return null|Payload
+     * 
+     * @throws ConsumeException
+     * @throws ConsumeTimedOutException
+     * @throws \RdKafka\Exception
      */
-    public function getMessage() : Payload
+    public function getMessage() : ?Payload
     {
-        if (!$this->isConsumeStart) {
-            $this->getConsumerTopic()->consumeStart($this->currentNode->getId(), RD_KAFKA_OFFSET_STORED);
+        $message = $this->getConsumer()->consume($this->timeout);
+        switch ($message->err) {
+            case RD_KAFKA_RESP_ERR_NO_ERROR:
+                return new Payload($message->topic_name, $message->payload);
+                break;
+            case RD_KAFKA_RESP_ERR__PARTITION_EOF:
+                return null;
+                break;
+            case RD_KAFKA_RESP_ERR__TIMED_OUT:
+                throw new ConsumeTimedOutException();
+                break;
+            default:
+                throw new ConsumeException($message->errstr(), $message->err);
+                break;
         }
-        
-        $message = $this->getConsumerTopic()->consume($this->currentNode->getId(), $this->config->getTimeout());
-        $this->messageCount++;
-        return new Payload($message);
     }
 
     /**
-     * Kafka destructor.
+     * @throws \RdKafka\Exception
      */
     public function __destruct()
     {
-        $this->getConsumerTopic()->offsetStore($this->currentNode->getId(), RD_KAFKA_OFFSET_STORED + $this->messageCount);
+        $this->getConsumer()->commitAsync();
+    }
+
+    /**
+     * @param array $consumerTopics
+     */
+    public function setConsumerTopics(array $consumerTopics) : void
+    {
+        $this->consumerTopics = $consumerTopics;
     }
 }

@@ -12,16 +12,40 @@ use RdKafka\Message;
 class Payload
 {
     /**
-     * @var Node
+     * @var string
      */
-    protected $from;
+    protected $topicName;
+
+    /**
+     * @var string
+     */
+    protected $data;
 
     /**
      * Payload constructor.
      *
-     * @param \RdKafka\Message $message
+     * @param string $topicName
+     * @param string $data
      */
-    public function __construct(Message $message)
+    public function __construct(string $topicName, string $data)
     {
+        $this->topicName = $topicName;
+        $this->data = $data;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTopicName() : string
+    {
+        return $this->topicName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getData() : string
+    {
+        return $this->data;
     }
 }

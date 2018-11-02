@@ -14,11 +14,12 @@ class KafkaException extends \Exception
     /**
      * KafkaException constructor.
      *
+     * @param string|null $message
      * @param int $code
      * @param \Throwable|null $previous
      */
-    public function __construct(int $code = 0, \Throwable $previous = null)
+    public function __construct(string $message = null, int $code = 0, \Throwable $previous = null)
     {
-        parent::__construct(static::MESSAGE, $code, $previous);
+        parent::__construct($message ?? static::MESSAGE, $code, $previous);
     }
 }
