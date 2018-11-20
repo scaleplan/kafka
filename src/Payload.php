@@ -2,8 +2,6 @@
 
 namespace Scaleplan\Kafka;
 
-use RdKafka\Message;
-
 /**
  * Class Payload
  *

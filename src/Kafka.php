@@ -9,6 +9,7 @@ use RdKafka\ProducerTopic;
 use RdKafka\TopicConf;
 use Scaleplan\Kafka\Exceptions\ConsumeException;
 use Scaleplan\Kafka\Exceptions\ConsumeTimedOutException;
+use function Scaleplan\Helpers\getenv;
 
 /**
  * Class Kafka
@@ -109,11 +110,16 @@ class Kafka
 
     /**
      * @param string $topicName
-     * @param \Scaleplan\Kafka\Payload $payload
+     * @param array $data
      */
-    public function produce(string $topicName, Payload $payload) : void
+    public function produce(string $topicName, array $data) : void
     {
-        $this->getProducerTopic($topicName)->produce(RD_KAFKA_PARTITION_UA, 0, (string) $payload);
+        $this->getProducerTopic($topicName)->produce(
+            RD_KAFKA_PARTITION_UA,
+            0,
+            json_encode($data, JSON_OBJECT_AS_ARRAY | JSON_NUMERIC_CHECK | JSON_UNESCAPED_SLASHES
+                | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION)
+        );
         $this->producer->poll(0);
     }
 
