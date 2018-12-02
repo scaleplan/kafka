@@ -8,6 +8,8 @@
     },
     "require": {
         "php": ">=7.0",
-        "ext-rdkafka": "*"
+        "ext-rdkafka": "*",
+        "scaleplan/helpers": "dev-master",
+        "scaleplan/event": "dev-master"
     }
 }

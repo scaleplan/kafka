@@ -124,6 +124,19 @@ class Kafka
     }
 
     /**
+     * @return Conf
+     */
+    public function getConf() : Conf
+    {
+        static $conf;
+        if (!$conf) {
+            $conf = new Conf();
+        }
+
+        return $conf;
+    }
+
+    /**
      * @return KafkaConsumer
      *
      * @throws \RdKafka\Exception
@@ -131,7 +144,7 @@ class Kafka
     protected function getConsumer() : KafkaConsumer
     {
         if (!$this->consumer) {
-            $conf = new Conf();
+            $conf = $this->getConf();
             $conf->set('group.id', 'myConsumerGroup');
             $conf->set('metadata.broker.list', $this->brokers);
 
@@ -139,8 +152,8 @@ class Kafka
             $topicConf->set('auto.offset.reset', 'smallest');
             $conf->setDefaultTopicConf($topicConf);
             $this->consumer = new KafkaConsumer($conf);
-            if ($this->consumerTopics !== null) {
-                $this->consumer->subscribe(['test']);
+            if ($this->consumerTopics) {
+                $this->consumer->subscribe($this->consumerTopics);
             }
         }
 
@@ -187,5 +200,13 @@ class Kafka
     public function setConsumerTopics(array $consumerTopics) : void
     {
         $this->consumerTopics = $consumerTopics;
+    }
+
+    /**
+     * @return Producer
+     */
+    public function getProducer() : Producer
+    {
+        return $this->producer;
     }
 }
