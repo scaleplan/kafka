@@ -4,6 +4,7 @@ namespace Scaleplan\Kafka;
 
 use Scaleplan\Console\AbstractCommand;
 use function Scaleplan\Event\dispatch;
+use Scaleplan\Kafka\Events\KafkaErrorEvent;
 
 /**
  * Class PollCommand
@@ -17,12 +18,20 @@ class PollCommand extends AbstractCommand
      */
     public const DAEMON_TIMEOUT = 500;
 
-    public const ERROR_EVENT = 'kafka_error';
-
     /**
      * @var Kafka
      */
     protected $kafka;
+
+    /**
+     * @var string
+     */
+    protected $lastReason;
+
+    /**
+     * @var string
+     */
+    protected $lastError;
 
     /**
      * PollCommand constructor.
@@ -36,11 +45,9 @@ class PollCommand extends AbstractCommand
         $this->kafka = Kafka::getInstance();
         $conf = $this->kafka->getConf();
         $conf->setErrorCb(function ($kafka, $err, $reason) {
-            dispatch(static::ERROR_EVENT, [
-                'errorMessage' => rd_kafka_err2str($err),
-                'reason'       => $reason,
-                'kafka'        => $kafka,
-            ]);
+            $this->lastError = rd_kafka_err2str($err);
+            $this->lastReason = $reason;
+            dispatch(KafkaErrorEvent::class, $this);
         });
     }
 

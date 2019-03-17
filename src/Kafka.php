@@ -7,9 +7,10 @@ use RdKafka\KafkaConsumer;
 use RdKafka\Producer;
 use RdKafka\ProducerTopic;
 use RdKafka\TopicConf;
+use function Scaleplan\Helpers\get_required_env;
 use Scaleplan\Kafka\Exceptions\ConsumeException;
 use Scaleplan\Kafka\Exceptions\ConsumeTimedOutException;
-use function Scaleplan\Helpers\getenv;
+use function Scaleplan\Helpers\get_env;
 
 /**
  * Class Kafka
@@ -19,7 +20,7 @@ use function Scaleplan\Helpers\getenv;
 class Kafka
 {
     public const LOG_LEVEL = LOG_WARNING;
-    public const TIMEOUT = 1e4;
+    public const TIMEOUT   = 1e4;
 
     /**
      * @var int
@@ -80,14 +81,14 @@ class Kafka
      * Kafka constructor.
      *
      * @param array|null $consumerTopics
+     *
+     * @throws \Scaleplan\Helpers\Exceptions\EnvNotFoundException
      */
     protected function __construct(array $consumerTopics = null)
     {
-        $this->consumerTopics = $consumerTopics ?? array_map(function(string $item) {
-                return trim($item);
-            }, explode(',', getenv('KAFKA_CONSUMER_TOPICS')));
-        $this->brokers = getenv('KAFKA_BROKERS');
-        $this->timeout = getenv('KAFKA_TIMEOUT') ?? static::TIMEOUT;
+        $this->consumerTopics = $consumerTopics ?? array_map('trim', explode(',', get_env('KAFKA_CONSUMER_TOPICS')));
+        $this->brokers = get_required_env('KAFKA_BROKERS');
+        $this->timeout = get_env('KAFKA_TIMEOUT') ?? static::TIMEOUT;
     }
 
     /**
@@ -162,7 +163,7 @@ class Kafka
 
     /**
      * @return null|Payload
-     * 
+     *
      * @throws ConsumeException
      * @throws ConsumeTimedOutException
      * @throws \RdKafka\Exception

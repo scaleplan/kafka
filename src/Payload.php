@@ -25,7 +25,7 @@ class Payload
      * @param string $topicName
      * @param string $data
      */
-    public function __construct(string $topicName, string $data)
+    public function __construct(\string $topicName, \string $data)
     {
         $this->topicName = $topicName;
         $this->data = $data;
