@@ -48,7 +48,7 @@ class Kafka
     protected $consumer;
 
     /**
-     * @var \RdKafka\ProducerTopic
+     * @var ProducerTopic
      */
     protected $producerTopic;
 
@@ -88,7 +88,7 @@ class Kafka
     {
         $this->consumerTopics = $consumerTopics ?? array_map('trim', explode(',', get_env('KAFKA_CONSUMER_TOPICS')));
         $this->brokers = get_required_env('KAFKA_BROKERS');
-        $this->timeout = get_env('KAFKA_TIMEOUT') ?? static::TIMEOUT;
+        $this->timeout = (int)(get_env('KAFKA_TIMEOUT') ?? static::TIMEOUT);
     }
 
     /**
