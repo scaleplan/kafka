@@ -10,6 +10,7 @@ namespace Scaleplan\Kafka\Exceptions;
 class KafkaException extends \Exception
 {
     public const MESSAGE = 'Kafka error.';
+    public const CODE = 500;
 
     /**
      * KafkaException constructor.
@@ -20,6 +21,6 @@ class KafkaException extends \Exception
      */
     public function __construct(string $message = '', int $code = 0, \Throwable $previous = null)
     {
-        parent::__construct($message ?: static::MESSAGE, $code, $previous);
+        parent::__construct($message ?: static::MESSAGE, $code ?: static::CODE, $previous);
     }
 }

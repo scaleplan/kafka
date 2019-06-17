@@ -10,4 +10,5 @@ namespace Scaleplan\Kafka\Exceptions;
 class ConsumeTimedOutException extends KafkaException
 {
     public const MESSAGE = 'Consume timed out error.';
+    public const CODE = 408;
 }
