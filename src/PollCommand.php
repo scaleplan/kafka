@@ -47,7 +47,7 @@ class PollCommand extends AbstractCommand
         $conf->setErrorCb(function ($kafka, $err, $reason) {
             $this->lastError = rd_kafka_err2str($err);
             $this->lastReason = $reason;
-            dispatch(KafkaErrorEvent::class, $this);
+            dispatch(KafkaErrorEvent::class, ['kafkaPoller' => $this]);
         });
     }
 
