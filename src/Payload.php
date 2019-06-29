@@ -2,12 +2,14 @@
 
 namespace Scaleplan\Kafka;
 
+use Scaleplan\Kafka\Interfaces\PayloadInterface;
+
 /**
  * Class Payload
  *
  * @package Scaleplan\Event\Kafka
  */
-class Payload
+class Payload implements PayloadInterface
 {
     /**
      * @var string
