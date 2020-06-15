@@ -9,7 +9,7 @@ namespace Scaleplan\Kafka\Exceptions;
  */
 class KafkaException extends \Exception
 {
-    public const MESSAGE = 'Kafka error.';
+    public const MESSAGE = 'Ошибка модуля kafka.';
     public const CODE = 500;
 
     /**

@@ -9,6 +9,6 @@ namespace Scaleplan\Kafka\Exceptions;
  */
 class ConsumeTimedOutException extends KafkaException
 {
-    public const MESSAGE = 'Consume timed out error.';
+    public const MESSAGE = 'Истекло время получения сообщения.';
     public const CODE = 408;
 }
