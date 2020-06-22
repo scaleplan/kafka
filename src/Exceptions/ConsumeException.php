@@ -9,6 +9,6 @@ namespace Scaleplan\Kafka\Exceptions;
  */
 class ConsumeException extends KafkaException
 {
-    public const MESSAGE = 'Ошибка получения сообщения.';
+    public const MESSAGE = 'kafka.message-received-error';
     public const CODE = 406;
 }

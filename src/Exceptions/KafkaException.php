@@ -2,6 +2,8 @@
 
 namespace Scaleplan\Kafka\Exceptions;
 
+use function Scaleplan\Translator\translate;
+
 /**
  * Class KafkaException
  *
@@ -9,7 +11,7 @@ namespace Scaleplan\Kafka\Exceptions;
  */
 class KafkaException extends \Exception
 {
-    public const MESSAGE = 'Ошибка модуля kafka.';
+    public const MESSAGE = 'kafka.kafka-error';
     public const CODE = 500;
 
     /**
@@ -18,9 +20,19 @@ class KafkaException extends \Exception
      * @param string $message
      * @param int $code
      * @param \Throwable|null $previous
+     *
+     * @throws \ReflectionException
+     * @throws \Scaleplan\DependencyInjection\Exceptions\ContainerTypeNotSupportingException
+     * @throws \Scaleplan\DependencyInjection\Exceptions\DependencyInjectionException
+     * @throws \Scaleplan\DependencyInjection\Exceptions\ParameterMustBeInterfaceNameOrClassNameException
+     * @throws \Scaleplan\DependencyInjection\Exceptions\ReturnTypeMustImplementsInterfaceException
      */
     public function __construct(string $message = '', int $code = 0, \Throwable $previous = null)
     {
-        parent::__construct($message ?: static::MESSAGE, $code ?: static::CODE, $previous);
+        parent::__construct(
+            $message ?: translate(static::MESSAGE) ?: static::MESSAGE,
+            $code ?: static::CODE,
+            $previous
+        );
     }
 }

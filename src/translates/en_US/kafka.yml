@@ -1,0 +1,3 @@
+message-received-error: Message receiving error.
+message-received-time-out: Message receiving time out.
+kafka-error: Kafka error.

@@ -1,0 +1,3 @@
+message-received-error: Ошибка получения сообщения.
+message-received-time-out: Истекло время получения сообщения.
+kafka-error: Ошибка модуля kafka.
